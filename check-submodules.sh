@@ -8,13 +8,11 @@
 # Optional env vars
 #   SUBMODULE_REMOTE_BRANCH   Remote ref to compare against (default: HEAD)
 #   SUBMODULE_SKIP            Space-separated list of submodule paths to skip
-#   AUTO_UPDATE_SUBMODULE     Submodule path to highlight in warnings (default: common)
 
 set -euo pipefail
 
 REMOTE_BRANCH="${SUBMODULE_REMOTE_BRANCH:-HEAD}"
 SKIP_LIST="${SUBMODULE_SKIP:-}"
-AUTO_UPDATE="${AUTO_UPDATE_SUBMODULE:-common}"
 
 # ── Collect all submodule paths from .gitmodules ─────────────────────────────
 if [[ ! -f .gitmodules ]]; then
