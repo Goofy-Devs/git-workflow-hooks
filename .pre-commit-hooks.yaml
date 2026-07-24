@@ -1,6 +1,6 @@
--   id: pull-submodules
-    name: pull-submodules
-    description: "Checks the submodule directory provided and pulls from it."
+-   id: check-submodules
+    name: check-submodules
+    description: "Checks the submodule directory provided and compares them to their remote."
     entry: ./check-submodules.sh
     language: script
     always_run: true
