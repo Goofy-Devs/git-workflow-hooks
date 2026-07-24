@@ -2,16 +2,19 @@
 # check_submodules.sh
 #
 # For every submodule declared in .gitmodules:
-#   - Stale submodules print a warning only (exit 0).
+#   - If the submodule is stale: prints a warning suggesting an update.
+#     The commit is NOT blocked — the warning is advisory only.
 #
 # Optional env vars
 #   SUBMODULE_REMOTE_BRANCH   Remote ref to compare against (default: HEAD)
 #   SUBMODULE_SKIP            Space-separated list of submodule paths to skip
+#   AUTO_UPDATE_SUBMODULE     Submodule path to highlight in warnings (default: common)
 
 set -euo pipefail
 
 REMOTE_BRANCH="${SUBMODULE_REMOTE_BRANCH:-HEAD}"
 SKIP_LIST="${SUBMODULE_SKIP:-}"
+AUTO_UPDATE="${AUTO_UPDATE_SUBMODULE:-common}"
 
 # ── Collect all submodule paths from .gitmodules ─────────────────────────────
 if [[ ! -f .gitmodules ]]; then
@@ -28,6 +31,8 @@ if [[ ${#submodule_paths[@]} -eq 0 ]]; then
 fi
 
 # ── Check each submodule ──────────────────────────────────────────────────────
+warned=0
+
 for path in "${submodule_paths[@]}"; do
 
   # Honour the skip list
@@ -80,20 +85,16 @@ for path in "${submodule_paths[@]}"; do
     continue
   fi
 
-  # 5. Stale — block the commit and tell the developer exactly what to run.
-  #    We do not attempt to auto-stage here because pre-commit's stash/restore
-  #    mechanism always overwrites index changes made inside a hook, causing an
-  #    infinite loop. The developer runs the fix outside pre-commit's stash
-  #    window, then re-commits cleanly.
-  if [[ "$pinned" != "$remote_sha" ]]; then
-    echo ""
-    echo "============================ WARNING ============================"
-    echo "pull-submodules: '$path' is out of date."
-    echo "  Pinned : $pinned"
-    echo "  Remote : $remote_sha"
-    echo "  Fix    : git submodule update --remote $path && git add $path"
-    echo "================================================================="
-    echo ""
+  # 5. Stale — warn the developer but do not block the commit.
+  echo ""
+  echo "============================= WARNING ============================="
+  echo "WARNING: submodule '$path' is behind the remote."
+  echo "  Pinned : $pinned"
+  echo "  Remote : $remote_sha"
+  echo "  To update: git submodule update --remote $path && git add $path"
+  echo "==================================================================="
+  echo ""
+
 done
 
 exit 0
