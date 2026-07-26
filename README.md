@@ -15,7 +15,7 @@ Checks every submodule declared in `.gitmodules` and **blocks the commit** by de
 **What it does:**
 
 - Reads all submodule paths from `.gitmodules` automatically — no configuration needed when submodules are added
-    - If you want to only check certain submodules, you can use the `--submodule-path` flag and pass in a submodule path that matches the path in `.gitmodules` right after. This must be repeated for every submodule you want to check (e.g., `--submodule-path submodule_1_path --submodule-path submodule_2_path`).
+    - If you want to only check certain submodules, you can use the `--submodule-path` flag and pass in submodule paths that matches the path in `.gitmodules` right after (e.g., `--submodule-path submodule_1_path submodule_2_path` or `--submodule-path submodule_1_path --submodule-path submodule_2_path`).
     - For paths with white space(s), surround them in quotes (e.g., `--submodule-path "my module"`)
 - Reads the pinned SHA directly from the git staging index (`git ls-files --stage`)
 - Calls `git ls-remote` against the submodule's remote to get the current HEAD SHA — read-only, no working tree writes, works even if the submodule is not initialised locally
@@ -32,7 +32,7 @@ check-submodules.........................................................Failed
 - duration: 0.58s
 - exit code: 1
 
-[ERROR] Submodule 'test_submodule' is out of date.
+[ERROR] Submodule 'test_submodule' is out of date
     Current : <example hash 1>
     Remote  : <example hash 2>
     To update, run: git submodule update --remote test_submodule && git add test_submodule
@@ -44,7 +44,7 @@ check-submodules.........................................................Passed
 - hook id: check-submodules
 - duration: 0.56s
 
-[WARNING] Submodule 'test_submodule' is out of date.
+[WARNING] Submodule 'test_submodule' is out of date
     Current : <example hash 1>
     Remote  : <example hash 2>
     To update, run: git submodule update --remote test_submodule && git add test_submodule
@@ -94,6 +94,8 @@ check-main...............................................................Failed
     CONFLICT (content): Merge conflict in <file_path 2>
     CONFLICT (content): Merge conflict in <file_path 3>
     CONFLICT (content): Merge conflict in <file_path 4>
+To resolve conflicts, run: git fetch origin && git merge main or git fetch origin && git rebase main
+After resolving the conflicts, run: git push -u origin test_branch
 ```
 
 With `--always-pass`:
@@ -107,6 +109,8 @@ check-main...............................................................Passed
     CONFLICT (content): Merge conflict in <file_path 2>
     CONFLICT (content): Merge conflict in <file_path 3>
     CONFLICT (content): Merge conflict in <file_path 4>
+To resolve conflicts, run: git fetch origin && git merge main or git fetch origin && git rebase main
+After resolving the conflicts, run: git push -u origin test_branch
 ```
 
 **To fix:** rebase or merge `main` into your branch, resolve conflicts, then re-commit:
@@ -156,7 +160,7 @@ If you want failures to never block commits:
     args: ["--always-pass"]
     verbose: true
 ```
-- Note: It's very important that you include `verbose: true` because these hooks will always pass, and `pre-commit` is silent on pass by default. This setting allows our warnings to print even on passes.
+- Note: It's very important that you include `verbose: true` because these hooks will always pass, and `pre-commit` is silent on pass by default. This setting allows warnings to print even on passes.
 
 If you want to check only certain submodules:
 ```yaml
@@ -164,10 +168,10 @@ If you want to check only certain submodules:
   rev: <tag-or-sha>
   hooks:
   - id: check-submodules
-    args: ["--always-pass", "--submodule-path", "submodule_1_path", "--submodule-path", "submodule_2_path"]
+    args: ["--always-pass", "--submodule-path", "submodule_1_path", "submodule_2_path"]
     verbose: true
 ```
-- Note that the argument passed to `--submodule-path` must match the submodule path in `.gitmodules`.
+- Note that the argument(s) passed to `--submodule-path` must match the submodule path in `.gitmodules`.
 
 Then install pre-commit and the hooks:
 
@@ -187,6 +191,6 @@ pre-commit run --all-files
 ## Requirements
 
 - [pre-commit](https://pre-commit.com/) >= 2.0
-- bash >= 3.2
 - git >= 2.38 (required by `check-main` for `git merge-tree --write-tree`)
+- Python >= 3.9 (required for `str.removeprefix` used in `check-submodules`)
 - Network access to submodule remotes (for `check-submodules`; degrades silently if offline)
